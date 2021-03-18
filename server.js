@@ -20,7 +20,7 @@ mongoose
     console.log("db connection established!");
   });
 // console.log(app.get("env"));
-console.log(process.env.NODE_ENV);
+// console.log(process.env.NODE_ENV);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
