@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-
+const slugify = require("slugify");
+// const validator = require("validator");
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -7,6 +8,12 @@ const tourSchema = new mongoose.Schema(
       required: [true, "A tour must have a name"],
       unique: true,
       trim: true,
+      maxLength: [40, "A tour name must have no more than 40 characters"],
+      minLength: [10, "a tour name must atleast have 10 characters"],
+      // validate: [validator.isAlpha, "Tour name must only contain letters"],
+    },
+    slug: {
+      type: String,
     },
     duration: {
       type: Number,
@@ -19,10 +26,16 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, "Tour must have a difficulty"],
+      enum: {
+        message: "Difficulty can be easy, medium or difficult",
+        values: ["easy", "medium", "difficult"],
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, "Rating must be atleast 1"],
+      max: [5, "Rating must be less than 5"],
     },
     ratingsQuantity: {
       type: Number,
@@ -32,7 +45,15 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [true, "A tour must have a price"],
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      validate: {
+        message: "Discount ({VALUE}) cant be greater than the price!",
+        validator: function (inputVal) {
+          return inputVal < this.price;
+        },
+      },
+    },
     summary: {
       type: String,
       trim: true,
@@ -53,6 +74,10 @@ const tourSchema = new mongoose.Schema(
       select: false,
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -61,6 +86,35 @@ const tourSchema = new mongoose.Schema(
 );
 tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7;
+});
+//Document middleware. runs before .save() & .create. NOT for .insert/insertMany
+tourSchema.pre("save", function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+// tourSchema.pre("save", function (next) {
+//   console.log("Will save doc to db...");
+//   next();
+// });
+// tourSchema.post("save", function (doc, next) {
+//   console.log(doc);
+//   next();
+// });
+//doesnt work for findOne
+// tourSchema.pre("find", function (next) {
+tourSchema.pre(/^find/, function (next) {
+  this.find({ secretTour: { $ne: true } });
+  this.start = Date.now();
+  next();
+});
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`query took ${Date.now() - this.start} miliseconds`);
+  // console.log(docs);
+  next();
+});
+tourSchema.pre("aggregate", function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  next();
 });
 const Tour = mongoose.model("Tour", tourSchema);
 module.exports = Tour;
