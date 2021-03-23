@@ -27,7 +27,7 @@ exports.getAllTours = async (req, res) => {
   } catch (err) {
     res.status(404).json({
       status: "fail",
-      message: err.message,
+      message: err,
     });
   }
   // console.log(req.query);
@@ -87,7 +87,7 @@ exports.getTour = async (req, res) => {
   } catch (err) {
     res.status(404).json({
       status: "fail",
-      message: "Could not find tour",
+      message: err,
     });
   }
 };
@@ -103,7 +103,7 @@ exports.createTour = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: "fail",
-      message: err.message,
+      message: err,
     });
   }
 };
@@ -122,7 +122,7 @@ exports.updateTour = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: "fail",
-      message: "Invalid data set",
+      message: err,
     });
   }
 };
@@ -137,7 +137,7 @@ exports.deleteTour = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: "fail",
-      message: "Invalid data set",
+      message: err,
     });
   }
 };
