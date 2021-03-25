@@ -23,9 +23,22 @@ mongoose
 // console.log(process.env.NODE_ENV);
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`server is up on ${port}!`);
 });
-
+process.on("uncaughtException", (err) => {
+  console.log("UNCAUGHT EXCEPTION! 🎃");
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
+process.on("unhandledRejection", (err) => {
+  console.log("UNHANDLED REJECTION! 🎃");
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
 
 //TEST!
