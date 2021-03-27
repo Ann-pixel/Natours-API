@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -23,7 +24,24 @@ const userSchema = new mongoose.Schema({
   passwordConfirm: {
     type: String,
     required: [true, "Be sure to confirm your password."],
+    validate: {
+      //custom validators always work only on SAVE and CREATE. not Update.
+      validator: function (el) {
+        return el === this.password;
+      },
+      message: "Passwords are not the same.",
+    },
   },
+});
+userSchema.pre("save", async function (next) {
+  //this middleware only runs if the pswd is modified.
+  if (!this.isModified("password")) return next();
+  // hash the pswd with  a cost of 12 (? number signifies CPU intensity)
+  this.password = await bcrypt.hash(this.password, 12);
+  //password confirm validation runs before this middleware, so we dont need it anymore and dont need to hash and save another field.
+  //even though this is a required field. it is only required for input. not required to be persisted in the db
+  this.passwordConfirm = undefined;
+  next();
 });
 const User = new mongoose.model("User", userSchema);
 module.exports = User;
