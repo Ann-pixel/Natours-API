@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "User must have a password"],
     minlength: 8,
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -32,6 +33,9 @@ const userSchema = new mongoose.Schema({
       message: "Passwords are not the same.",
     },
   },
+  passwordChangedAt: {
+    type: Date,
+  },
 });
 userSchema.pre("save", async function (next) {
   //this middleware only runs if the pswd is modified.
@@ -43,5 +47,24 @@ userSchema.pre("save", async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return jwtTimestamp < changedTimestamp;
+  }
+  //false means NOT CHANGED after JWT was assigned
+  return false;
+};
 const User = new mongoose.model("User", userSchema);
 module.exports = User;
