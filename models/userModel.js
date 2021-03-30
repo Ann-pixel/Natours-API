@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
@@ -36,6 +37,8 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: {
     type: Date,
   },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
   role: {
     type: String,
     enum: ["user", "guide", "lead-guide", "admin"],
@@ -52,7 +55,12 @@ userSchema.pre("save", async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
-
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+  //subtract 1 second because sometimes, the doc is updated faster than the token is issued. making pswChangedAt > jwttimestamp. this ensures that doesnt happen
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
@@ -70,6 +78,16 @@ userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
   }
   //false means NOT CHANGED after JWT was assigned
   return false;
+};
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  //saving encrypted in the Database and exposing only the decrypted to the client.
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  return resetToken;
 };
 const User = new mongoose.model("User", userSchema);
 module.exports = User;
