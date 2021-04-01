@@ -22,8 +22,19 @@ exports.signUp = catchAsync(async (req, res, next) => {
   });
   createAndSendToken(newUser, 201, res);
 });
+const cookieOptions = {
+  expires: new Date(
+    Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+  ),
+  httpOnly: true,
+};
+if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
 const createAndSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+  res.cookie("jwt", token, cookieOptions);
+  //removes password from the output.
+  //note that we're not .save() -ing the doc after.
+  user.password = undefined;
   res.status(statusCode).json({
     status: "success",
     token,
