@@ -20,9 +20,7 @@ mongoose
     // console.log(conn.connections);
     console.log("db connection established!");
   });
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, "utf-8")
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, "utf-8"));
 async function importData() {
   try {
     await Tour.create(tours);
