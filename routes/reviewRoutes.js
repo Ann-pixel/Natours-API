@@ -1,6 +1,13 @@
 const express = require("express");
 const router = express.Router();
+const authenticationController = require("./../controllers/authenticationController.js");
 const reviewController = require("./../controllers/reviewController.js");
-router.route("/getAllReviews").get(reviewController.getAllReviews);
-router.route("/createReview").post(reviewController.createReview);
+router
+  .route("/")
+  .get(reviewController.getAllReviews)
+  .post(
+    authenticationController.protect,
+    authenticationController.restrictTo("user"),
+    reviewController.createReview
+  );
 module.exports = router;
