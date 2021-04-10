@@ -3,7 +3,6 @@ const app = express();
 const userController = require("./../controllers/userController.js");
 const authenticationController = require("./../controllers/authenticationController.js");
 const router = express.Router();
-
 router.post("/signup", authenticationController.signUp);
 router.post("/login", authenticationController.logIn);
 router.post("/forgotPassword", authenticationController.forgotPassword);
