@@ -2,16 +2,18 @@ const express = require("express");
 const AppError = require("../utils/appError.js");
 const User = require("./../models/userModel.js");
 const catchAsync = require("./../utils/catchAsync.js");
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: "success",
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+const factory = require("./handlerFactory.js");
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+exports.getAllUsers = factory.getAll(User);
+exports.getUser = factory.getOne(User);
+//DO NOT UPDATE PASSWORD WITH THIS. coz it  uses findandupdate. wont run validating middleware
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);
+
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach((key) => {
@@ -22,28 +24,9 @@ const filterObj = (obj, ...allowedFields) => {
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: "error",
-    message: "This route is not yet defined!",
+    message: "This route is not yet defined! Please use /signup instead.",
   });
 };
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: "error",
-    message: "This route is not yet defined!",
-  });
-};
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: "error",
-    message: "This route is not yet defined!",
-  });
-};
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: "error",
-    message: "This route is not yet defined!",
-  });
-};
-
 exports.updateMe = async (req, res, next) => {
   //create error if user posts password data
   if (req.body.password || req.body.passwordConfirm) {

@@ -12,6 +12,12 @@ router.patch(
   authenticationController.protect,
   authenticationController.updatePasswords
 );
+router.get(
+  "/me",
+  authenticationController.protect,
+  userController.getMe,
+  userController.getUser
+);
 router.patch(
   "/updateMe",
   authenticationController.protect,
