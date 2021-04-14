@@ -25,6 +25,10 @@ router
 router
   .route("/top-5-cheap")
   .get(tourController.aliasTopTours, tourController.getAllTours);
+
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(tourController.getToursWithin);
 router
   .route("/")
   .get(tourController.getAllTours)
@@ -33,6 +37,7 @@ router
     authenticationController.restrictTo("admin", "lead-guide"),
     tourController.createTour
   );
+router.route("/distances/:latlng/unit/:unit").get(tourController.getDistances);
 router
   .route("/:id")
   .get(tourController.getTour)
