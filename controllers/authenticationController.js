@@ -59,6 +59,16 @@ exports.logIn = catchAsync(async (req, res, next) => {
   createAndSendToken(user, 200, res);
 });
 
+exports.logout = (req, res) => {
+  res.cookie("jwt", "loggedout", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    status: "success",
+  });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   //get token and check if its there
   let token;
@@ -196,26 +206,30 @@ exports.updatePasswords = catchAsync(async (req, res, next) => {
 });
 //ONly for rendered pages. to test if user is logged in.
 //there will never be an error out of this function
-exports.isLoggedIn = catchAsync(async (req, res, next) => {
-  if (req.cookies.jwt) {
-    //verification of the token
-    const decodedPayload = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET
-    );
-    //check if user still exists.
-    const currentUser = await User.findById(decodedPayload.id);
-    if (!currentUser) {
+exports.isLoggedIn = async (req, res, next) => {
+  try {
+    if (req.cookies.jwt) {
+      //verification of the token
+      const decodedPayload = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+      //check if user still exists.
+      const currentUser = await User.findById(decodedPayload.id);
+      if (!currentUser) {
+        return next();
+      }
+      //check if user changed passwords after JWT was issued.
+      if (currentUser.changedPasswordAfter(decodedPayload.iat)) {
+        return next();
+      }
+      // There is a logged in user:
+      //res.locals is available on all pug tempalates
+      res.locals.user = currentUser;
       return next();
     }
-    //check if user changed passwords after JWT was issued.
-    if (currentUser.changedPasswordAfter(decodedPayload.iat)) {
-      return next();
-    }
-    // There is a logged in user:
-    //res.locals is available on all pug tempalates
-    res.locals.user = currentUser;
+  } catch {
     return next();
   }
   next();
-});
+};

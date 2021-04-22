@@ -1,9 +1,10 @@
-import { login } from "./login.js";
+import { login, logout } from "./login.js";
 import "@babel/polyfill";
 import { displayMap } from "./mapbox.js";
 
 const mapBox = document.getElementById("map");
 const loginForm = document.querySelector(".form");
+const logOutBtn = document.querySelector(".nav__el--logout");
 let email, password;
 if (mapBox) {
   const tourLocations = JSON.parse(
@@ -19,3 +20,4 @@ if (loginForm) {
     login(email, password);
   });
 }
+if (logOutBtn) logOutBtn.addEventListener("click", logout);

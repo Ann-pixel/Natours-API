@@ -4,14 +4,7 @@ const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}:  ${err.value}`;
   return new AppError(message, 400);
 };
-const sendErrorForDev = (err, res) => {
-  res.status(err.statusCode).json({
-    status: err.status,
-    error: err,
-    message: err.message,
-    stack: err.stack,
-  });
-};
+
 const handleDuplicateFieldsDB = (err) => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
 
@@ -30,29 +23,67 @@ const handleJWTError = (err) => {
 const handleJWTExpiredError = (err) => {
   return new AppError("Your token has expired. Please login again.", 401);
 };
-const sendErrorForProd = (err, res) => {
-  //Operational error. so send full info to client
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
+const sendErrorForDev = (err, req, res) => {
+  //API
+
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(err.statusCode).json({
       status: err.status,
+      error: err,
       message: err.message,
+      stack: err.stack,
     });
-  } else {
+  }
+  //Rendered Website
+  console.error("Error 🎃", err);
+
+  return res
+    .status(err.statusCode)
+    .render("error", { title: "Something went wrong", message: err.message });
+};
+const sendErrorForProd = (err, req, res) => {
+  if (req.originalUrl.startsWith("/api")) {
+    //A: API
+    //Operational error. so send full info to client
+
+    if (err.isOperational) {
+      //opearational- trusted error
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    }
     //Programming/application error. dont want  to leak errs to client.instead- log them--
     console.error("Error 🎃", err);
-    res.status(500).json({
+    return res.status(500).json({
       status: "error",
       message: "Something went very wrong!",
     });
   }
+  //B rendered website
+  if (err.isOperational) {
+    //opearational- trusted error
+
+    return res.status(err.statusCode).render("error", {
+      title: "Something went wrong",
+      message: err.message,
+    });
+  }
+  //Programming/application error. dont want  to leak errs to client.instead- log them--
+  console.error("Error 🎃", err);
+  return res.status(err.statusCode).render("error", {
+    title: "Something went wrong",
+    message: "Please try again later.",
+  });
 };
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
   if (process.env.NODE_ENV === "development") {
-    sendErrorForDev(err, res);
+    sendErrorForDev(err, req, res);
   } else if (process.env.NODE_ENV === "production") {
     let error = Object.assign(err);
+
     if (error.name === "CastError") {
       error = handleCastErrorDB(error);
     }
@@ -68,6 +99,6 @@ module.exports = (err, req, res, next) => {
     if (error.name === "TokenExpiredError") {
       error = handleJWTExpiredError(error);
     }
-    sendErrorForProd(error, res);
+    sendErrorForProd(error, req, res);
   }
 };
