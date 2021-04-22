@@ -12,6 +12,8 @@ const tourRouter = require("./routes/tourRoutes.js");
 const userRouter = require("./routes/userRoutes.js");
 const reviewRouter = require("./routes/reviewRoutes.js");
 const viewRouter = require("./routes/viewRoutes.js");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const app = express();
 
 app.set("view engine", "pug");
@@ -19,7 +21,24 @@ app.set("views", path.join(__dirname, "views"));
 //--global middlewares--
 app.use(express.static(path.join(__dirname, "public")));
 //set security HTTP headers
-app.use(helmet());
+// app.use(helmet());
+// app.use(
+//   cors({
+//     origin: "http://127.0.0.1:3000",
+//     credentials: true,
+//   })
+// );
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'", "https:", "http:", "data:", "ws:"],
+      baseUri: ["'self'"],
+      fontSrc: ["'self'", "https:", "http:", "data:"],
+      scriptSrc: ["'self'", "https:", "http:", "blob:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
+    },
+  })
+);
 
 // Logging in dev
 if (process.env.NODE_ENV === "development") {
@@ -35,6 +54,7 @@ app.use("/api", limiter);
 //body parser => req.body
 
 app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
 //data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
@@ -64,6 +84,7 @@ app.use(
 //test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  console.log(req.cookies);
   next();
 });
 
