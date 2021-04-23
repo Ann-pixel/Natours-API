@@ -27,7 +27,7 @@ exports.createUser = (req, res) => {
     message: "This route is not yet defined! Please use /signup instead.",
   });
 };
-exports.updateMe = async (req, res, next) => {
+exports.updateMe = catchAsync(async (req, res, next) => {
   //create error if user posts password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -51,7 +51,7 @@ exports.updateMe = async (req, res, next) => {
       user: updatedUser,
     },
   });
-};
+});
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
   res.status(204).json({

@@ -1,4 +1,5 @@
 const Tour = require("./../models/tourModel.js");
+const User = require("./../models/userModel.js");
 const catchAsync = require("./../utils/catchAsync.js");
 const AppError = require("./../utils/appError.js");
 exports.getOverview = catchAsync(async (req, res, next) => {
@@ -34,10 +35,12 @@ exports.getTour = catchAsync(async (req, res, next) => {
 });
 
 exports.getLoginForm = (req, res) => {
-  res
-    .status(200)
-
-    .render("login", {
-      title: "User login",
-    });
+  res.status(200).render("login", {
+    title: "User login",
+  });
+};
+exports.getAccount = (req, res) => {
+  res.status(200).render("account", {
+    title: "Your account",
+  });
 };
