@@ -1,24 +1,48 @@
 const nodemailer = require("nodemailer");
-
-const sendEmail = async (options) => {
-  //create transporter-- service that sends the email.
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-  //define email options
-  const mailOptions = {
-    from: "Gauri Mhaiskar <gauri.mhaiskar@gmail.com>",
-    to: options.email,
-    subject: options.subject,
-    text: options.message,
-    // html:
-  };
-  //send email with nodemailer.
-  await transporter.sendMail(mailOptions);
+const pug = require("pug");
+const htmlToText = require("html-to-text");
+module.exports = class Email {
+  constructor(user, url) {
+    this.to = user.email;
+    this.firstName = user.name.split(" ")[0];
+    this.url = url;
+    this.from = `Gauri Mhaiskar <${process.env.EMAIL_FROM}>`;
+  }
+  newTransport() {
+    if (process.env.NODE_ENV === "production") {
+      //sendgrid
+      return 1;
+    }
+    //create transporter-- service that sends the email.
+    return nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  }
+  async send(template, subject) {
+    //send actual email
+    //1 render html- based on pug template
+    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+      firstName: this.firstName,
+      url: this.url,
+      subject,
+    });
+    //2 define email options
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject,
+      html,
+      text: htmlToText.fromString(html),
+    };
+    // create a transport and send email
+    await this.newTransport().sendMail(mailOptions);
+  }
+  async sendWelcome() {
+    await this.send("welcome", "Welcome to the Natours Family!");
+  }
 };
-module.exports = sendEmail;
