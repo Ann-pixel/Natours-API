@@ -14,6 +14,7 @@ const reviewRouter = require("./routes/reviewRoutes.js");
 const viewRouter = require("./routes/viewRoutes.js");
 const bookingRouter = require("./routes/bookingRoutes.js");
 const cookieParser = require("cookie-parser");
+const compression = require("compression");
 const cors = require("cors");
 const app = express();
 
@@ -135,6 +136,8 @@ app.use(
 //   next();
 // });
 //test middleware
+
+app.use(compression());
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   // console.log(req.cookies);

@@ -21,7 +21,7 @@ if (loginForm) {
     evt.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    console.log(`from index.js ${password}, ${email}`);
+    // console.log(`from index.js ${password}, ${email}`);
     login(email, password);
   });
 }
@@ -33,7 +33,7 @@ if (updateForm) {
     form.append("name", document.getElementById("name").value);
     form.append("email", document.getElementById("email").value);
     form.append("photo", document.getElementById("photo").files[0]);
-    console.log(form);
+    // console.log(form);
     updateData(form, "data");
   });
 }

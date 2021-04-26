@@ -27,11 +27,11 @@ export async function logout() {
       url: "/api/v1/users/logout",
     });
     if (res.data.status === "success") {
-      console.log("loggedout success");
+      // console.log("loggedout success");
       location.reload(true);
     }
   } catch (err) {
-    console.log(err.response);
+    // console.log(err.response);
     showAlert("error", "Error logging out. Try again! ");
   }
 }
