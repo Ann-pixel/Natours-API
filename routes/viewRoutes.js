@@ -2,9 +2,10 @@ const express = require("express");
 const authenticationController = require("../controllers/authenticationController.js");
 const router = express.Router();
 const viewsController = require("./../controllers/viewsController.js");
-
+const bookingController = require("./../controllers/bookingController.js");
 router.get(
   "/",
+  bookingController.createBookingCheckout,
   authenticationController.isLoggedIn,
   viewsController.getOverview
 );
@@ -24,4 +25,9 @@ router.get("/me", authenticationController.protect, viewsController.getAccount);
 //   authenticationController.protect,
 //   viewsController.updateUserData
 // );
+router.get(
+  "/my-tours",
+  authenticationController.protect,
+  viewsController.getMyTours
+);
 module.exports = router;
