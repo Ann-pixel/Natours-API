@@ -24,12 +24,15 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 //set security HTTP headers
 // app.use(helmet());
+
+app.use(cors());
 // app.use(
 //   cors({
 //     origin: "http://127.0.0.1:3000",
 //     credentials: true,
 //   })
 // );
+app.options("*", cors());
 //--------------------------------- resolving content security policy issues
 // app.use(
 //   helmet.contentSecurityPolicy({
