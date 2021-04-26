@@ -31,9 +31,10 @@ const cookieOptions = {
     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
   ),
   httpOnly: true,
+  secure: req.secure || req.headers["x-forwarded-proto"] === "https",
 };
-if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
-const createAndSendToken = (user, statusCode, res) => {
+
+const createAndSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
   res.cookie("jwt", token, cookieOptions);
   //removes password from the output.
@@ -60,7 +61,7 @@ exports.logIn = catchAsync(async (req, res, next) => {
     return next(new AppError("Incorrect Email or Password", 401));
   }
 
-  createAndSendToken(user, 200, res);
+  createAndSendToken(user, 200, req, res);
 });
 
 exports.logout = (req, res) => {
@@ -188,7 +189,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   //update changedPasswordAt property
 
   //log in user send JWT
-  createAndSendToken(user, 200, res);
+  createAndSendToken(user, 200, req, res);
 });
 exports.updatePasswords = catchAsync(async (req, res, next) => {
   // get user from collection
@@ -206,7 +207,7 @@ exports.updatePasswords = catchAsync(async (req, res, next) => {
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
   //log user in -- send new jwt.
-  createAndSendToken(user, 200, res);
+  createAndSendToken(user, 200, req, res);
 });
 //ONly for rendered pages. to test if user is logged in.
 //there will never be an error out of this function
