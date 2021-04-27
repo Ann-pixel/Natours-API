@@ -53,3 +53,10 @@ exports.getMyTours = catchAsync(async (req, res, next) => {
   const tours = await Tour.find({ _id: { $in: tourIds } });
   res.status(200).render("overview", { title: "My Tours", tours });
 });
+exports.alertSuccess = (req, res, next) => {
+  const alert = req.query.alert;
+  if (alert === "booking") {
+    res.locals.alert = "Excellent! Your booking was scuccessful!";
+  }
+  next();
+};

@@ -1,5 +1,6 @@
 import { login, logout } from "./login.js";
 import { updateData } from "./updateData.js";
+import { showAlert } from "./alerts.js";
 import "@babel/polyfill";
 import { displayMap } from "./mapbox.js";
 import { bookTour } from "./stripe.js";
@@ -63,3 +64,6 @@ if (bookButton)
     // console.log(tourId);
     bookTour(tourId);
   });
+
+const alertMessage = document.querySelector("body").dataset.alert;
+if (alertMessage) showAlert("success", alertMessage, 20);
